@@ -11,14 +11,14 @@ enum Gamechar {
 impl std::fmt::Display for Gamechar {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
-            Self::Empty => return write!(f, " "),
-            Self::X => return write!(f, "X"),
-            Self::O => return write!(f, "O"),
-            Self::WinnerNone => return Err(std::fmt::Error),
+            Self::Empty => write!(f, " "),
+            Self::X => write!(f, "X"),
+            Self::O => write!(f, "O"),
+            Self::WinnerNone => Err(std::fmt::Error),
         }
     }
 }
-fn print_game(rows: &Vec<Vec<Gamechar>>) {
+fn print_game(rows: &[Vec<Gamechar>]) {
     for (i, row) in rows.iter().enumerate() {
         for (j, cell) in row.iter().enumerate() {
             print!(" {cell}");
@@ -37,7 +37,7 @@ fn print_game(rows: &Vec<Vec<Gamechar>>) {
     }
 }
 
-fn validate_move(x: u8, y: u8, game: &Vec<Vec<Gamechar>>) -> bool {
+fn validate_move(x: u8, y: u8, game: &[Vec<Gamechar>]) -> bool {
     if x > 3 || y > 3 || x < 1 || y < 1 {
         return false;
     }
@@ -46,7 +46,7 @@ fn validate_move(x: u8, y: u8, game: &Vec<Vec<Gamechar>>) -> bool {
         return false;
     }
 
-    return true;
+    true
 }
 
 fn who_won(game: &Vec<Vec<Gamechar>>) -> Gamechar {
@@ -102,7 +102,7 @@ fn who_won(game: &Vec<Vec<Gamechar>>) -> Gamechar {
         }
     }
 
-    return Gamechar::WinnerNone;
+    Gamechar::WinnerNone
 }
 
 fn main() {
