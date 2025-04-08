@@ -51,12 +51,12 @@ fn print_game(rows: &[[GameTile; 3]; 3]) {
     }
 }
 
-fn validate_move(x: u8, y: u8, game: &[[GameTile; 3]; 3]) -> bool {
+fn validate_move(x: usize, y: usize, game: &[[GameTile; 3]; 3]) -> bool {
     if x > 3 || y > 3 || x < 1 || y < 1 {
         return false;
     }
 
-    if game[Into::<usize>::into(y - 1)][Into::<usize>::into(x - 1)] != GameTile::Empty {
+    if game[y - 1][x - 1] != GameTile::Empty {
         return false;
     }
 
@@ -109,8 +109,8 @@ fn main() {
         let y: usize;
 
         loop {
-            let mut move_x = 0;
-            let mut move_y = 0;
+            let mut move_x: usize = 0;
+            let mut move_y: usize = 0;
 
             print_game(&game);
             println!();
@@ -122,8 +122,8 @@ fn main() {
             }
 
             if scanf!("{} {}", move_x, move_y).is_ok() && validate_move(move_x, move_y, &game) {
-                x = Into::<usize>::into(move_x) - 1;
-                y = Into::<usize>::into(move_y) - 1;
+                x = move_x - 1;
+                y = move_y - 1;
                 println!();
                 break;
             }

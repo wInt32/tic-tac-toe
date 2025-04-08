@@ -3,7 +3,7 @@ A simple 2 player tic tac toe game written in rust.
 
 ## Features
 - 2 player gameplay, switching between players every turn
-- only 164 LOC as of yet
+- only 154 LOC as of yet
 
 ## Usage
 Use `cargo run` to run the program. Every turn it tells you which player is playing and it asks you for your turn.
