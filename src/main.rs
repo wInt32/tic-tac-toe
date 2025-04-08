@@ -1,24 +1,38 @@
 use scanf::scanf;
 
 #[derive(Clone, Eq, PartialEq, Copy)]
-enum Gamechar {
-    Empty,
+enum GameTile {
     X,
     O,
-    WinnerNone,
+    Empty,
 }
 
-impl std::fmt::Display for Gamechar {
+enum GameResult {
+    X,
+    O,
+    Draw,
+}
+
+impl From<GameTile> for GameResult {
+    fn from(value: GameTile) -> Self {
+        match value {
+            GameTile::X => Self::X,
+            GameTile::O => Self::O,
+            GameTile::Empty => Self::Draw,
+        }
+    }
+}
+
+impl std::fmt::Display for GameTile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             Self::Empty => write!(f, " "),
             Self::X => write!(f, "X"),
             Self::O => write!(f, "O"),
-            Self::WinnerNone => Err(std::fmt::Error),
         }
     }
 }
-fn print_game(rows: &[Vec<Gamechar>]) {
+fn print_game(rows: &[[GameTile; 3]; 3]) {
     for (i, row) in rows.iter().enumerate() {
         for (j, cell) in row.iter().enumerate() {
             print!(" {cell}");
@@ -37,76 +51,58 @@ fn print_game(rows: &[Vec<Gamechar>]) {
     }
 }
 
-fn validate_move(x: u8, y: u8, game: &[Vec<Gamechar>]) -> bool {
+fn validate_move(x: u8, y: u8, game: &[[GameTile; 3]; 3]) -> bool {
     if x > 3 || y > 3 || x < 1 || y < 1 {
         return false;
     }
 
-    if game[Into::<usize>::into(y - 1)][Into::<usize>::into(x - 1)] != Gamechar::Empty {
+    if game[Into::<usize>::into(y - 1)][Into::<usize>::into(x - 1)] != GameTile::Empty {
         return false;
     }
 
     true
 }
 
-fn who_won(game: &Vec<Vec<Gamechar>>) -> Gamechar {
-    let top_left = game[0][0];
-    let top_middle = game[0][1];
-    let top_right = game[0][2];
+fn update_game_state(game: &[[GameTile; 3]; 3]) -> Option<GameResult> {
+    const X: GameTile = GameTile::X;
+    const O: GameTile = GameTile::O;
+    let winner = match game {
+        // Rows
+        [[X, X, X], [_, _, _], [_, _, _]] => X,
+        [[O, O, O], [_, _, _], [_, _, _]] => O,
+        [[_, _, _], [X, X, X], [_, _, _]] => X,
+        [[_, _, _], [O, O, O], [_, _, _]] => O,
+        [[_, _, _], [_, _, _], [X, X, X]] => X,
+        [[_, _, _], [_, _, _], [O, O, O]] => O,
+        // Columns
+        [[X, _, _], [X, _, _], [X, _, _]] => X,
+        [[O, _, _], [O, _, _], [O, _, _]] => O,
+        [[_, X, _], [_, X, _], [_, X, _]] => X,
+        [[_, O, _], [_, O, _], [_, O, _]] => O,
+        [[_, _, X], [_, _, X], [_, _, X]] => X,
+        [[_, _, O], [_, _, O], [_, _, O]] => O,
+        // Diagonals
+        [[X, _, _], [_, X, _], [_, _, X]] => X,
+        [[O, _, _], [_, O, _], [_, _, O]] => O,
+        [[_, _, X], [_, X, _], [X, _, _]] => X,
+        [[_, _, O], [_, O, _], [O, _, _]] => O,
 
-    let middle_left = game[1][0];
-    let center = game[1][1];
-    let middle_right = game[1][2];
-
-    let bottom_left = game[2][0];
-    let bottom_middle = game[2][1];
-    let bottom_right = game[2][2];
-
-    if center == middle_right && center == middle_left {
-        return center;
-    }
-
-    if center == top_middle && center == bottom_middle {
-        return center;
-    }
-
-    if center == top_right && center == bottom_left {
-        return center;
-    }
-
-    if center == top_left && center == bottom_right {
-        return center;
-    }
-
-    if top_middle == top_left && top_middle == top_right {
-        return top_middle;
-    }
-
-    if bottom_middle == bottom_left && bottom_middle == bottom_right {
-        return bottom_middle;
-    }
-
-    if middle_left == top_left && middle_left == bottom_left {
-        return middle_left;
-    }
-
-    if middle_right == top_right && middle_right == bottom_right {
-        return middle_right;
-    }
-
-    for row in game {
-        for cell in row {
-            if *cell == Gamechar::Empty {
-                return Gamechar::Empty;
+        g => {
+            for row in g {
+                for &cell in row {
+                    if cell == GameTile::Empty {
+                        return None;
+                    }
+                }
             }
+            return Some(GameResult::Draw);
         }
-    }
-
-    Gamechar::WinnerNone
+    };
+    Some(winner.into())
 }
 
 fn main() {
-    let mut game = vec![vec![Gamechar::Empty; 3]; 3];
+    let mut game = [[GameTile::Empty; 3]; 3];
 
     for i in 0.. {
         let x: usize;
@@ -137,28 +133,22 @@ fn main() {
         }
 
         if i % 2 == 0 {
-            game[y][x] = Gamechar::X;
+            game[y][x] = GameTile::X;
         } else {
-            game[y][x] = Gamechar::O;
+            game[y][x] = GameTile::O;
         }
 
-        let winner = who_won(&game);
+        let result = update_game_state(&game);
 
-        if winner == Gamechar::X {
-            print_game(&game);
-            println!();
-            println!("Congratulations! X has won the game.");
-            break;
-        } else if winner == Gamechar::O {
-            print_game(&game);
-            println!();
-            println!("Congratulations! O has won the game.");
-            break;
-        } else if winner == Gamechar::WinnerNone {
-            print_game(&game);
-            println!();
-            println!("It's a draw!");
-            break;
+        print_game(&game);
+        println!();
+
+        match result {
+            None => continue,
+            Some(GameResult::X) => println!("Congratulations! X has won the game."),
+            Some(GameResult::O) => println!("Congratulations! O has won the game."),
+            Some(GameResult::Draw) => println!("It's a draw!"),
         }
+        break;
     }
 }
